@@ -4,13 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"cloud-resource-auto-scaler-backend/internal/health"
+	"cloud-resource-auto-scaler-backend/internal/metrics"
 )
 
-func NewRouter() *gin.Engine {
-	r := gin.Default()
+func NewRouter(metricsHandler *metrics.Handler) *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Logger(), gin.Recovery())
+	r.SetTrustedProxies(nil)
 
-	// Register health routes
+	// Health check
 	health.RegisterRoutes(r)
+
+	// Metrics routes
+	r.GET("/metrics/stream", metricsHandler.StreamMetrics)
 
 	return r
 }
